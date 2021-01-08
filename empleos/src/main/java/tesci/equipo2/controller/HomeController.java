@@ -1,5 +1,6 @@
 package tesci.equipo2.controller;
 
+import java.security.GeneralSecurityException;
 import java.util.Date;
 import java.util.List;
 import javax.servlet.http.HttpServletRequest;
@@ -26,6 +27,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import tesci.equipo2.model.Perfil;
 import tesci.equipo2.model.Usuario;
 import tesci.equipo2.model.Vacante;
+import tesci.equipo2.service.EmailService;
 import tesci.equipo2.service.ICategoriasService;
 import tesci.equipo2.service.IUsuariosService;
 import tesci.equipo2.service.IVacantesService;
@@ -46,6 +48,9 @@ public class HomeController {
     @Autowired
     private PasswordEncoder passwordEncoder;
   
+    @Autowired
+    private EmailService SendEmailService;
+    
 	@GetMapping("/")
 	public String mostrarHome() {
 		return "home";
@@ -112,11 +117,24 @@ public class HomeController {
 		 * Guardamos el usuario en la base de datos. El Perfil se guarda automaticamente
 		 */
 		serviceUsuarios.guardar(usuario);
-				
+				String mail="Su cuenta ha sido registrada con exito\r\n"
+						+ "Usuario: "+usuario.getUsername()+"\r\n"
+						+ "Contraseña: "+pwdPlano+"\r\n"
+						+ "Email: "+usuario.getEmail()+"\r\n";
+		try {
+			SendEmailService.sendEmail("203101009@tesci.edu.mx", usuario.getEmail(), "Cuenta Registrada", mail);
+		} catch (GeneralSecurityException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
 		attributes.addFlashAttribute("msg", "Has sido registrado. ¡Ahora puedes ingresar al sistema!");
 		
 		return "redirect:/login";
 	}
+	
+	
+	
 	
 	/**
 	 * Método para realizar búsquedas desde el formulario de búsqueda del HomePage
